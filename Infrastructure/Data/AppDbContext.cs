@@ -15,6 +15,8 @@ namespace Infrastructure.Data
         }
 
         public DbSet<Usuario> Usuarios { get; set; }
-        public DbSet<RegistroGlicemia> RegistroGlicemia { get; set; }
+        public DbSet<RegistroGlicemia> RegistrosGlicemia { get; set; }
+
+
     }
 }
