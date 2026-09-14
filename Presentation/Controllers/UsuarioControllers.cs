@@ -1,5 +1,5 @@
-﻿using Application.Interfaces;
-using Domain.Entities;
+﻿using Application.DTOs;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers
@@ -16,9 +16,9 @@ namespace Presentation.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Usuario usuario)
+        public async Task<IActionResult> Create(UsuarioCreateDto dto)
         {
-            var usuarioCriado = await _service.CreateAsync(usuario);
+            var usuarioCriado = await _service.CreateAsync(dto);
 
             return CreatedAtAction(
                 nameof(GetById),
@@ -48,15 +48,10 @@ namespace Presentation.Controllers
             return Ok(usuarios);
         }
 
-        [HttpPut("id")]
-        public async Task<IActionResult> Update(int id, Usuario usuario)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, UsuarioUpdateDto dto)
         {
-            if (id != usuario.Id)
-            {
-                return BadRequest("Id invalido ou nao encontrado");
-            }
-
-            var atualizado = await _service.UpdateAsync(usuario);
+            var atualizado = await _service.UpdateAsync(id, dto);
 
             if (!atualizado)
             {
