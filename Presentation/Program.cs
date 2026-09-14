@@ -1,3 +1,6 @@
+using Application.Interfaces;
+using Application.Interfaces.Application.Interfaces;
+using Application.Services;
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
@@ -22,7 +25,12 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
 builder.Services.AddScoped<IRegistroGlicemiaRepository, RegistroGlicemiaRepository>();
 
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+
+builder.Services.AddScoped<IRegistroGlicemiaService, RegistroGlicemiaService>();
+
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
