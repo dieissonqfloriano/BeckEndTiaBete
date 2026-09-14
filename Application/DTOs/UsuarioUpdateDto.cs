@@ -6,7 +6,14 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    internal class UsuarioUpdateDto
+    public class UsuarioUpdateDto
     {
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string TipoDiabetes { get; set; } = string.Empty;
+        public int? Idade { get; set; }
+        public string? Celular { get; set; }
+        public decimal FatorSensibilidade { get; set; }
+        public int HgtAlvo { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.DTOs;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,15 +10,15 @@ namespace Application.Interfaces
 {
     public interface IUsuarioService
     {
-        Task <Usuario> CreateAsync(Usuario usuario);
+        Task <UsuarioOutputDto> CreateAsync(UsuarioCreateDto usuario);
 
-        Task <Usuario?> GetByIdAsync(int id);
+        Task <UsuarioOutputDto?> GetByIdAsync(int id);
 
-        Task <List<Usuario>> GetAllAsync();
+        Task <List<UsuarioOutputDto>> GetAllAsync();
 
         Task <bool> DeleteAsync(int id);
 
-        Task <bool> UpdateAsync(Usuario usuario);
+        Task <bool> UpdateAsync(int id,UsuarioUpdateDto dto);
         
     }
 }
