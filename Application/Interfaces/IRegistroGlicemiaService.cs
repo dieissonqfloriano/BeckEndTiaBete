@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.DTOs;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,13 +12,15 @@ namespace Application.Interfaces
     {
         public interface IRegistroGlicemiaService
         {
-            Task<RegistroGlicemia> CreateAsync(RegistroGlicemia registro);
+            Task<RegistroGlicemiaOutputDto> CreateAsync(
+                RegistroGlicemiaCreateDto dto);
 
-            Task<RegistroGlicemia?> GetByIdAsync(int id);
+            Task<RegistroGlicemiaOutputDto?> GetByIdAsync(int id);
 
-            Task<List<RegistroGlicemia>> GetAllAsync();
+            Task<List<RegistroGlicemiaOutputDto>> GetAllAsync();
 
-            Task<bool> UpdateAsync(RegistroGlicemia registro);
+            Task<bool> UpdateAsync(
+                int id, RegistroGlicemiaUpdateDto dto);
 
             Task<bool> DeleteAsync(int id);
         }

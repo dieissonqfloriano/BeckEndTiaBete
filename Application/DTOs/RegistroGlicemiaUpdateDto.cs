@@ -6,7 +6,13 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    internal class RegistroGlicemiaUpdateDto
+    public class RegistroGlicemiaUpdateDto
     {
+        public int Glicemia {  get; set; }
+        public int Dose { get; set; }
+        public TimeSpan Hora {  get; set; }
+        public string Refeicao { get; set; } = string.Empty;
+        public DateTime Data { get; set; }
+
     }
 }

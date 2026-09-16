@@ -29,6 +29,8 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
 builder.Services.AddScoped<IRegistroGlicemiaService, RegistroGlicemiaService>();
 
+builder.Services.AddScoped<IRegistroGlicemiaService, RegistroGlicemiaService>();
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen();

@@ -1,11 +1,13 @@
-﻿using Application.Interfaces.Application.Interfaces;
+﻿using Application.Interfaces;
 using Domain.Entities;
 using Domain.Interfaces;
+using Application.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.Interfaces.Application.Interfaces;
 
 namespace Application.Services
 {
@@ -17,13 +19,32 @@ namespace Application.Services
         {
             _repository = repository;
         }
-
-        public async Task<RegistroGlicemia> CreateAsync(RegistroGlicemia registro)
+     
+        public async Task<RegistroGlicemiaOutputDto> CreateAsync(RegistroGlicemiaCreateDto dto)
         {
+            var registro = new RegistroGlicemia
+            {
+                Glicemia = dto.Glicemia,
+                Dose = dto.Dose,
+                Hora = dto.Hora,
+                Refeicao = dto.Refeicao,
+                Data = dto.Data,
+                UsuarioId = dto.UsuarioId
+            };
+
             await _repository.AddAsync(registro);
             await _repository.SaveChangesAsync();
 
-            return registro;
+            return new RegistroGlicemiaOutputDto
+            {
+                Id = registro.Id,
+                Glicemia = registro.Glicemia,
+                Dose = registro.Dose,
+                Hora = registro.Hora,
+                Refeicao = registro.Refeicao,
+                Data = registro.Data,
+                UsuarioId = registro.UsuarioId
+            };
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -36,36 +57,65 @@ namespace Application.Services
             }
 
             _repository.Delete(registro);
+
             await _repository.SaveChangesAsync();
 
             return true;
         }
 
-        public async Task<List<RegistroGlicemia>> GetAllAsync()
+        public async Task<List<RegistroGlicemiaOutputDto>> GetAllAsync()
         {
-            return await _repository.GetAllAsync();
+            var registros = await _repository.GetAllAsync();
+
+            return registros.Select(registro => new RegistroGlicemiaOutputDto
+            {
+                Id = registro.Id,
+                Glicemia = registro.Glicemia,
+                Dose = registro.Dose,
+                Hora = registro.Hora,
+                Refeicao = registro.Refeicao,
+                Data = registro.Data,
+                UsuarioId = registro.UsuarioId
+
+            }).ToList();
         }
 
-        public Task<RegistroGlicemia?> GetByIdAsync(int id)
+        public async Task<RegistroGlicemiaOutputDto?> GetByIdAsync(int id)
         {
-            return _repository.GetByIdAsync(id);
+            var registro = await _repository.GetByIdAsync(id);
+
+            if (registro == null)
+            {
+                return null;
+            }
+
+            return new RegistroGlicemiaOutputDto
+            {
+                Id = registro.Id,
+                Glicemia = registro.Glicemia,
+                Dose = registro.Dose,
+                Hora = registro.Hora,
+                Refeicao = registro.Refeicao,
+                Data = registro.Data,
+                UsuarioId = registro.UsuarioId
+            };
+
         }
 
-        public async Task<bool> UpdateAsync(RegistroGlicemia registro)
+        public async Task<bool> UpdateAsync(int id, RegistroGlicemiaUpdateDto dto)
         {
-            var registroExiste = await _repository.GetByIdAsync(registro.Id);
+            var registroExiste = await _repository.GetByIdAsync(id);
 
             if (registroExiste == null) 
             {
                 return false;
             }
 
-            registroExiste.Glicemia = registro.Glicemia;
-            registroExiste.Dose = registro.Dose;
-            registroExiste.Hora = registro.Hora;
-            registroExiste.Refeicao = registro.Refeicao;
-            registroExiste.Date = registro.Date;
-            registroExiste.UsuarioId = registro.UsuarioId;
+            registroExiste.Glicemia = dto.Glicemia;
+            registroExiste.Dose = dto.Dose;
+            registroExiste.Hora = dto.Hora;
+            registroExiste.Refeicao = dto.Refeicao;
+            registroExiste.Data = dto.Data;
 
             _repository.Update(registroExiste);
 
