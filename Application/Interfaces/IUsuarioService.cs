@@ -12,6 +12,8 @@ namespace Application.Interfaces
     {
         Task <UsuarioOutputDto> CreateAsync(UsuarioCreateDto usuario);
 
+        Task<UsuarioOutputDto?> LoginAsync(LoginDto dto); 
+
         Task <UsuarioOutputDto?> GetByIdAsync(int id);
 
         Task <List<UsuarioOutputDto>> GetAllAsync();

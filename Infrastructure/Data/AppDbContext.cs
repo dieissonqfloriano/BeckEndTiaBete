@@ -17,6 +17,14 @@ namespace Infrastructure.Data
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<RegistroGlicemia> RegistrosGlicemia { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Usuario>()
+                .HasIndex(p => p.Email)
+                .IsUnique();
+        }
 
     }
 }

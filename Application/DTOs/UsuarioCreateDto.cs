@@ -13,7 +13,7 @@ namespace Application.DTOs
         public string Senha { get; set; } = string.Empty;
         public string TipoDiabetes { get; set; } = string.Empty;
         public int? Idade { get; set; }
-        public int? Celular { get; set; }
+        public string? Celular { get; set; }
         public int FatorSensibilidade { get; set; }
         public int HgtAlvo { get; set; }
     }

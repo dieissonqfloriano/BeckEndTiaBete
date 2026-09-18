@@ -48,5 +48,11 @@ namespace Infrastructure.Repositories
         {
            _context.Usuarios.Update(usuario);
         }
+
+        public async Task<Usuario?> GetByEmailAsync(string email)
+        {
+            return await _context.Usuarios
+                .FirstOrDefaultAsync(p => p.Email == email);
+        }
     }
 }

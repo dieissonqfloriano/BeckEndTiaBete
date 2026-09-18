@@ -16,7 +16,8 @@ namespace Domain.Entities
         public int HgtAlvo { get; set; }
         public string Senha { get; set; } = string.Empty;
         public int? Idade { get; set; }
-        public int? Celular { get; set; }
+        public string? Celular { get; set; }
+        public string Role {  get; set; } = "Usuario";
         public List<RegistroGlicemia> RegistroGlicemia { get; set; } = new ();
     }
 }

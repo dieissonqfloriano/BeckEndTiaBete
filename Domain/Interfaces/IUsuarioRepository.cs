@@ -15,6 +15,7 @@ namespace Domain.Interfaces
         Task <Usuario?> GetByIdAsync (int id);
         Task<List<Usuario>> GetAllAsync ();
         Task SaveChangesAsync ();
+        Task<Usuario?> GetByEmailAsync(string email);
 
     }
 }

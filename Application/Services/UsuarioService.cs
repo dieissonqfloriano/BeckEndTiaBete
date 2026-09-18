@@ -1,9 +1,11 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
+using BCrypt.Net;
 using Domain.Entities;
 using Domain.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,16 +24,24 @@ namespace Application.Services
 
         public async Task<UsuarioOutputDto> CreateAsync(UsuarioCreateDto dto)
         {
+            var usuarioexiste = await _repository.GetByEmailAsync(dto.Email);
+
+            if (usuarioexiste != null)
+            {
+                throw new Exception("Já existe um usuário cadastrado com este e-mail.");
+            }
+
             var usuario = new Usuario
             {
                 Name = dto.Name,
                 Email = dto.Email,
-                Senha = dto.Senha,
+                Senha = BCrypt.Net.BCrypt.HashPassword(dto.Senha),
                 TipoDiabetes = dto.TipoDiabetes,
                 Idade = dto.Idade,
                 Celular = dto.Celular,
                 FatorSensibilidade = dto.FatorSensibilidade,
-                HgtAlvo = dto.HgtAlvo
+                HgtAlvo = dto.HgtAlvo,
+                Role = "Usuario"
             };
 
             await _repository.AddAsync(usuario);
@@ -50,6 +60,37 @@ namespace Application.Services
             };
 
         }
+
+        public async Task<UsuarioOutputDto?> LoginAsync(LoginDto dto)
+        {
+            var usuario = await _repository.GetByEmailAsync(dto.Email);
+
+            if (usuario == null)
+            {
+                return null;
+            }
+
+            var senhaCorreta = BCrypt.Net.BCrypt.Verify(dto.Senha, usuario.Senha);
+
+            if (!senhaCorreta)
+            {
+                return null;
+            }
+
+            return new UsuarioOutputDto
+            {
+                Id = usuario.Id,
+                Name = usuario.Name,
+                Email = usuario.Email,
+                TipoDiabetes = usuario.TipoDiabetes,
+                Idade = usuario.Idade,
+                Celular = usuario.Celular,
+                FatorSensibilidade = usuario.FatorSensibilidade,
+                HgtAlvo = usuario.HgtAlvo
+            };
+        }
+
+
 
         public async Task<bool> DeleteAsync(int id)
         {

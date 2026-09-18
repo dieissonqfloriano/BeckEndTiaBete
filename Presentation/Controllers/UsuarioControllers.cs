@@ -27,6 +27,20 @@ namespace Presentation.Controllers
             );
         }
 
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDto dto)
+        {
+            var usuario = await _service.LoginAsync(dto);
+
+            if (usuario == null)
+            { 
+                return Unauthorized("Email ou Senha invalidos");
+            }
+
+            return Ok(usuario);
+        }
+
+
         [HttpGet("id")]
         public async Task<IActionResult> GetById(int id)
         {
