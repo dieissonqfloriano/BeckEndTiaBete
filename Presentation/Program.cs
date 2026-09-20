@@ -5,6 +5,7 @@ using Domain.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Infrastructure.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +31,8 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IRegistroGlicemiaService, RegistroGlicemiaService>();
 
 builder.Services.AddScoped<IRegistroGlicemiaService, RegistroGlicemiaService>();
+
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddEndpointsApiExplorer();
 
