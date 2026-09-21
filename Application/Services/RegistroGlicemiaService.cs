@@ -19,8 +19,8 @@ namespace Application.Services
         {
             _repository = repository;
         }
-     
-        public async Task<RegistroGlicemiaOutputDto> CreateAsync(RegistroGlicemiaCreateDto dto)
+
+        public async Task<RegistroGlicemiaOutputDto> CreateAsync(RegistroGlicemiaCreateDto dto, int usuarioId)
         {
             var registro = new RegistroGlicemia
             {
@@ -29,7 +29,7 @@ namespace Application.Services
                 Hora = dto.Hora,
                 Refeicao = dto.Refeicao,
                 Data = dto.Data,
-                UsuarioId = dto.UsuarioId
+                UsuarioId = usuarioId
             };
 
             await _repository.AddAsync(registro);
@@ -47,9 +47,9 @@ namespace Application.Services
             };
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id, int usuarioId)
         {
-            var registro = await _repository.GetByIdAsync(id);
+            var registro = await _repository.GetByIdAsync(id, usuarioId);
 
             if (registro == null)
             {
@@ -63,9 +63,9 @@ namespace Application.Services
             return true;
         }
 
-        public async Task<List<RegistroGlicemiaOutputDto>> GetAllAsync()
+        public async Task<List<RegistroGlicemiaOutputDto>> GetAllAsync(int usuarioId)
         {
-            var registros = await _repository.GetAllAsync();
+            var registros = await _repository.GetAllUsuarioIdAsync(usuarioId);
 
             return registros.Select(registro => new RegistroGlicemiaOutputDto
             {
@@ -76,13 +76,12 @@ namespace Application.Services
                 Refeicao = registro.Refeicao,
                 Data = registro.Data,
                 UsuarioId = registro.UsuarioId
-
             }).ToList();
         }
 
-        public async Task<RegistroGlicemiaOutputDto?> GetByIdAsync(int id)
+        public async Task<RegistroGlicemiaOutputDto?> GetByIdAsync(int id, int usuarioId)
         {
-            var registro = await _repository.GetByIdAsync(id);
+            var registro = await _repository.GetByIdAsync(id, usuarioId);
 
             if (registro == null)
             {
@@ -102,9 +101,9 @@ namespace Application.Services
 
         }
 
-        public async Task<bool> UpdateAsync(int id, RegistroGlicemiaUpdateDto dto)
+        public async Task<bool> UpdateAsync(int id, RegistroGlicemiaUpdateDto dto, int usuarioId)
         {
-            var registroExiste = await _repository.GetByIdAsync(id);
+            var registroExiste = await _repository.GetByIdAsync(id, usuarioId);
 
             if (registroExiste == null) 
             {

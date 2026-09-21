@@ -29,15 +29,18 @@ namespace Infrastructure.Repositories
             _context.RegistrosGlicemia.Remove(registro);
         }
 
-        public async Task<List<RegistroGlicemia>> GetAllAsync()
-        {
-            return await _context.RegistrosGlicemia.ToListAsync();
-        }
-
-        public async Task<RegistroGlicemia?> GetByIdAsync(int id)
+        public async Task<List<RegistroGlicemia>> GetAllUsuarioIdAsync(int usuarioId)
         {
             return await _context.RegistrosGlicemia
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .Where(r => r.UsuarioId == usuarioId)
+                .ToListAsync();
+        }
+
+        public async Task<RegistroGlicemia?> GetByIdAsync(int id, int usuarioId)
+        {
+            return await _context.RegistrosGlicemia
+                .FirstOrDefaultAsync(p => p.Id == id
+                && p.UsuarioId == usuarioId);
         }
 
         public async Task SaveChangesAsync()

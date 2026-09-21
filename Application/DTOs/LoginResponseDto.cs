@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    internal class LoginResponseDto
+    public class LoginResponseDto
     {
+        public string Token { get; set; } = string.Empty;
+
+        public UsuarioOutputDto Usuario { get; set; } = new();
+
     }
 }

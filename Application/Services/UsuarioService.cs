@@ -16,10 +16,12 @@ namespace Application.Services
     public class UsuarioService : IUsuarioService
     {
         private readonly IUsuarioRepository _repository;
+        private readonly ITokenService _tokenService;
 
-        public UsuarioService(IUsuarioRepository repository)
+        public UsuarioService(IUsuarioRepository repository, ITokenService tokenService)
         {
             _repository = repository;
+            _tokenService = tokenService;
         }
 
         public async Task<UsuarioOutputDto> CreateAsync(UsuarioCreateDto dto)
@@ -61,7 +63,7 @@ namespace Application.Services
 
         }
 
-        public async Task<UsuarioOutputDto?> LoginAsync(LoginDto dto)
+        public async Task<LoginResponseDto?> LoginAsync(LoginDto dto)
         {
             var usuario = await _repository.GetByEmailAsync(dto.Email);
 
@@ -77,7 +79,9 @@ namespace Application.Services
                 return null;
             }
 
-            return new UsuarioOutputDto
+            var token = _tokenService.GenerateToken(usuario);
+
+            var usuarioOutput = new UsuarioOutputDto
             {
                 Id = usuario.Id,
                 Name = usuario.Name,
@@ -87,6 +91,12 @@ namespace Application.Services
                 Celular = usuario.Celular,
                 FatorSensibilidade = usuario.FatorSensibilidade,
                 HgtAlvo = usuario.HgtAlvo
+            };
+
+            return new LoginResponseDto
+            {
+                Token = token,
+                Usuario = usuarioOutput
             };
         }
 

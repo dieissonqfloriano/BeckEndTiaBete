@@ -13,16 +13,16 @@ namespace Application.Interfaces
         public interface IRegistroGlicemiaService
         {
             Task<RegistroGlicemiaOutputDto> CreateAsync(
-                RegistroGlicemiaCreateDto dto);
+                RegistroGlicemiaCreateDto dto, int usuarioId);
 
-            Task<RegistroGlicemiaOutputDto?> GetByIdAsync(int id);
+            Task<RegistroGlicemiaOutputDto?> GetByIdAsync(int id, int usxuarioId);
 
-            Task<List<RegistroGlicemiaOutputDto>> GetAllAsync();
+            Task<List<RegistroGlicemiaOutputDto>> GetAllAsync(int usuarioId);
 
             Task<bool> UpdateAsync(
-                int id, RegistroGlicemiaUpdateDto dto);
+                int id, RegistroGlicemiaUpdateDto dto, int usuarioId);
 
-            Task<bool> DeleteAsync(int id);
+            Task<bool> DeleteAsync(int id, int usuarioId);
         }
     }
 }
