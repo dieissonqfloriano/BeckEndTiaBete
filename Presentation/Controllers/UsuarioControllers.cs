@@ -1,6 +1,8 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
@@ -20,11 +22,7 @@ namespace Presentation.Controllers
         {
             var usuarioCriado = await _service.CreateAsync(dto);
 
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = usuarioCriado.Id },
-                usuarioCriado
-            );
+            return StatusCode(201, usuarioCriado);
         }
 
         [HttpPost("login")]
@@ -40,20 +38,43 @@ namespace Presentation.Controllers
             return Ok(usuario);
         }
 
-
-        [HttpGet("id")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpPost("reativar")]
+        public async Task<IActionResult> ReativarConta(ReativarContaDto dto)
         {
-            var usuario = await _service.GetByIdAsync(id);
+            var reativado = await _service.ReativarContaAsync(dto);
+
+            if (!reativado)
+            {
+                return BadRequest("Não foi possível reativar a conta.");
+            }
+
+            return Ok("Conta reativada com sucesso.");
+        }
+
+        [Authorize]
+        [HttpGet("{perfil}")]
+        public async Task<IActionResult> GetPerfil()
+        {
+            var usuarioClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (usuarioClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            var usuarioId = int.Parse(usuarioClaim.Value);
+
+            var usuario = await _service.GetByIdAsync(usuarioId);
 
             if (usuario == null)
             {
                 return NotFound();
             }
 
-            return Ok(usuario);
+            return Ok(usuario );
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -62,10 +83,20 @@ namespace Presentation.Controllers
             return Ok(usuarios);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, UsuarioUpdateDto dto)
+        [Authorize]
+        [HttpPut("perfil")]
+        public async Task<IActionResult> UpdatePerfil(UsuarioUpdateDto dto)
         {
-            var atualizado = await _service.UpdateAsync(id, dto);
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (usuarioIdClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            var usuarioId = int.Parse(usuarioIdClaim.Value);
+
+            var atualizado = await _service.UpdateAsync(usuarioId, dto);
 
             if (!atualizado)
             {
@@ -75,10 +106,20 @@ namespace Presentation.Controllers
             return NoContent();
         }
 
-        [HttpDelete("id")]
-        public async Task<IActionResult> Delete(int id)
+        [Authorize]
+        [HttpDelete("{perfil}")]
+        public async Task<IActionResult> DeletePerfil()
         {
-            var deletado = await _service.DeleteAsync(id);
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (usuarioIdClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            var usuarioId = int.Parse(usuarioIdClaim.Value);
+
+            var deletado = await _service.DeleteAsync(usuarioId);
 
             if (!deletado)
             {
@@ -86,7 +127,7 @@ namespace Presentation.Controllers
             }
 
             return NoContent();
-        }
 
+        }
     }
 }

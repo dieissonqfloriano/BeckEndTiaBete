@@ -72,6 +72,11 @@ namespace Application.Services
                 return null;
             }
 
+            if (!usuario.Ativo)
+            {
+                return null;
+            }
+
             var senhaCorreta = BCrypt.Net.BCrypt.Verify(dto.Senha, usuario.Senha);
 
             if (!senhaCorreta)
@@ -100,8 +105,6 @@ namespace Application.Services
             };
         }
 
-
-
         public async Task<bool> DeleteAsync(int id)
         {
             var usuario = await _repository.GetByIdAsync(id);
@@ -111,11 +114,43 @@ namespace Application.Services
                 return false;
             }
 
-            _repository.Delete(usuario);
+            usuario.Ativo = false;
+
+            _repository.Update(usuario);
 
             await _repository.SaveChangesAsync();
-            return true;
 
+            return true;
+        }
+
+        public async Task<bool> ReativarContaAsync(ReativarContaDto dto)
+        {
+            var usuario = await _repository.GetByEmailAsync(dto.Email);
+
+            if (usuario == null)
+            {
+                return false;
+            }
+
+            if (usuario.Ativo)
+            {
+                return false;
+            }
+
+            var senhaCorreta = BCrypt.Net.BCrypt.Verify(dto.Senha, usuario.Senha);
+
+            if (!senhaCorreta)
+            {
+                return false;
+            }
+
+            usuario.Ativo = true;
+
+            _repository.Update(usuario);
+
+            await _repository.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<List<UsuarioOutputDto>> GetAllAsync()

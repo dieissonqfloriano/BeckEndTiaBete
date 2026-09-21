@@ -18,6 +18,7 @@ namespace Domain.Entities
         public int? Idade { get; set; }
         public string? Celular { get; set; }
         public string Role {  get; set; } = "Usuario";
+        public bool Ativo { get; set; } = true;
         public List<RegistroGlicemia> RegistroGlicemia { get; set; } = new ();
     }
 }

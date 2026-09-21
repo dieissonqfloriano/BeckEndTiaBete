@@ -11,9 +11,9 @@ namespace Domain.Interfaces
     {
         Task AddAsync(RegistroGlicemia registro);
         void Update(RegistroGlicemia registro);
-        void Delete(RegistroGlicemia registro);
         Task<RegistroGlicemia?> GetByIdAsync(int id, int usuarioId);
         Task<List<RegistroGlicemia>> GetAllUsuarioIdAsync(int usuarioId);
+        void Delete(RegistroGlicemia registro);
         Task SaveChangesAsync();
     }
 }
