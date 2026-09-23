@@ -215,5 +215,56 @@ namespace Application.Services
             return true;
 
         }
+
+        public async Task<bool> PatchAsync(int id, UsuarioPatchDto dto)
+        {
+            var usuario = await _repository.GetByIdAsync(id);
+
+            if (usuario == null)
+            {
+                return false;
+            }
+
+            if (dto.Name != null)
+            {
+                usuario.Name = dto.Name;
+            }
+
+            if (dto.Email != null)
+            {
+                usuario.Email = dto.Email;
+            }
+
+            if (dto.TipoDiabetes != null)
+            {
+                usuario.TipoDiabetes = dto.TipoDiabetes;
+            }
+
+            if (dto.Idade != null)
+            {
+                usuario.Idade = dto.Idade;
+            }
+
+            if (dto.Celular != null)
+            {
+                usuario.Celular = dto.Celular;
+            }
+
+            if (dto.FatorSensibilidade != null)
+            {
+                usuario.FatorSensibilidade = dto.FatorSensibilidade.Value;
+            }
+
+            if (dto.HgtAlvo != null)
+            {
+                usuario.HgtAlvo = dto.HgtAlvo.Value;
+            }
+
+            _repository.Update(usuario);
+
+            await _repository.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

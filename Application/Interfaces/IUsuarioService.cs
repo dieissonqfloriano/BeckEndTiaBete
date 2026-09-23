@@ -16,6 +16,7 @@ namespace Application.Interfaces
         Task <List<UsuarioOutputDto>> GetAllAsync();
         Task <bool> DeleteAsync(int id);
         Task<bool> ReativarContaAsync(ReativarContaDto dto);
-        Task <bool> UpdateAsync(int id,UsuarioUpdateDto dto);        
+        Task <bool> UpdateAsync(int id,UsuarioUpdateDto dto);
+        Task<bool> PatchAsync(int id, UsuarioPatchDto dto);
     }
 }
