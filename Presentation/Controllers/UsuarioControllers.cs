@@ -87,11 +87,16 @@ namespace Presentation.Controllers
 
             var usuarioId = int.Parse(usuarioIdClaim.Value);
 
-            var atualizado = await _service.PatchAsync(usuarioId, dto);
+            var resultado = await _service.PatchAsync(usuarioId, dto);
 
-            if (!atualizado)
+            if (resultado == ResultadoPatchUsuario.UsuarioNaoEncontrado)
             {
                 return NotFound();
+            }
+
+            if (resultado == ResultadoPatchUsuario.EmailJaExiste)
+            {
+                return Conflict("Já existe um usuário cadastrado com este e-mail.");
             }
 
             return NoContent();

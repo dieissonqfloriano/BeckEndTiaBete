@@ -1,15 +1,7 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
-using BCrypt.Net;
 using Domain.Entities;
 using Domain.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace Application.Services
 {
@@ -18,7 +10,9 @@ namespace Application.Services
         private readonly IUsuarioRepository _repository;
         private readonly ITokenService _tokenService;
 
-        public UsuarioService(IUsuarioRepository repository, ITokenService tokenService)
+        public UsuarioService(
+            IUsuarioRepository repository,
+            ITokenService tokenService)
         {
             _repository = repository;
             _tokenService = tokenService;
@@ -26,11 +20,12 @@ namespace Application.Services
 
         public async Task<UsuarioOutputDto> CreateAsync(UsuarioCreateDto dto)
         {
-            var usuarioexiste = await _repository.GetByEmailAsync(dto.Email);
+            var usuarioExiste = await _repository.GetByEmailAsync(dto.Email);
 
-            if (usuarioexiste != null)
+            if (usuarioExiste != null)
             {
-                throw new Exception("Já existe um usuário cadastrado com este e-mail.");
+                throw new Exception(
+                    "Já existe um usuário cadastrado com este e-mail.");
             }
 
             var usuario = new Usuario
@@ -49,18 +44,7 @@ namespace Application.Services
             await _repository.AddAsync(usuario);
             await _repository.SaveChangesAsync();
 
-            return new UsuarioOutputDto
-            {
-                Id = usuario.Id,
-                Name = usuario.Name,
-                Email= usuario.Email,
-                TipoDiabetes = usuario.TipoDiabetes,
-                Idade= usuario.Idade,
-                Celular = usuario.Celular,
-                FatorSensibilidade = usuario.FatorSensibilidade,
-                HgtAlvo = usuario.HgtAlvo
-            };
-
+            return MapearParaOutput(usuario);
         }
 
         public async Task<LoginResponseDto?> LoginAsync(LoginDto dto)
@@ -77,7 +61,10 @@ namespace Application.Services
                 return null;
             }
 
-            var senhaCorreta = BCrypt.Net.BCrypt.Verify(dto.Senha, usuario.Senha);
+            var senhaCorreta = BCrypt.Net.BCrypt.Verify(
+                dto.Senha,
+                usuario.Senha
+            );
 
             if (!senhaCorreta)
             {
@@ -86,22 +73,10 @@ namespace Application.Services
 
             var token = _tokenService.GenerateToken(usuario);
 
-            var usuarioOutput = new UsuarioOutputDto
-            {
-                Id = usuario.Id,
-                Name = usuario.Name,
-                Email = usuario.Email,
-                TipoDiabetes = usuario.TipoDiabetes,
-                Idade = usuario.Idade,
-                Celular = usuario.Celular,
-                FatorSensibilidade = usuario.FatorSensibilidade,
-                HgtAlvo = usuario.HgtAlvo
-            };
-
             return new LoginResponseDto
             {
                 Token = token,
-                Usuario = usuarioOutput
+                Usuario = MapearParaOutput(usuario)
             };
         }
 
@@ -137,7 +112,10 @@ namespace Application.Services
                 return false;
             }
 
-            var senhaCorreta = BCrypt.Net.BCrypt.Verify(dto.Senha, usuario.Senha);
+            var senhaCorreta = BCrypt.Net.BCrypt.Verify(
+                dto.Senha,
+                usuario.Senha
+            );
 
             if (!senhaCorreta)
             {
@@ -155,19 +133,11 @@ namespace Application.Services
 
         public async Task<List<UsuarioOutputDto>> GetAllAsync()
         {
-           var usuario = await _repository.GetAllAsync();
+            var usuarios = await _repository.GetAllAsync();
 
-            return usuario.Select(usuario => new UsuarioOutputDto
-            {
-                Id = usuario.Id,
-                Name = usuario.Name,
-                Email = usuario.Email,
-                TipoDiabetes = usuario.TipoDiabetes,
-                Idade = usuario.Idade,
-                Celular = usuario.Celular,
-                FatorSensibilidade = usuario.FatorSensibilidade,
-                HgtAlvo = usuario.HgtAlvo
-            }).ToList();
+            return usuarios
+                .Select(usuario => MapearParaOutput(usuario))
+                .ToList();
         }
 
         public async Task<UsuarioOutputDto?> GetByIdAsync(int id)
@@ -179,50 +149,16 @@ namespace Application.Services
                 return null;
             }
 
-            return new UsuarioOutputDto
-            {
-                Id = usuario.Id,
-                Name = usuario.Name,
-                Email = usuario.Email,
-                TipoDiabetes = usuario.TipoDiabetes,
-                Idade = usuario.Idade,
-                Celular = usuario.Celular,
-                FatorSensibilidade = usuario.FatorSensibilidade,
-                HgtAlvo = usuario.HgtAlvo
-            };
+            return MapearParaOutput(usuario);
         }
 
-        public async Task<bool> UpdateAsync(int id, UsuarioUpdateDto dto)
-        {
-            var usuarioexiste = await _repository.GetByIdAsync(id);
-
-            if (usuarioexiste == null)
-            {
-                return false;
-            }
-
-            usuarioexiste.Name = dto.Name;
-            usuarioexiste.Email = dto.Email;
-            usuarioexiste.Idade = dto.Idade;
-            usuarioexiste.Celular = dto.Celular;
-            usuarioexiste.TipoDiabetes = dto.TipoDiabetes;
-            usuarioexiste.FatorSensibilidade = dto.FatorSensibilidade;
-            usuarioexiste.HgtAlvo = dto.HgtAlvo;
-
-            _repository.Update(usuarioexiste);
-
-            await _repository.SaveChangesAsync();
-            return true;
-
-        }
-
-        public async Task<bool> PatchAsync(int id, UsuarioPatchDto dto)
+        public async Task<ResultadoPatchUsuario> PatchAsync(int id, UsuarioPatchDto dto)
         {
             var usuario = await _repository.GetByIdAsync(id);
 
             if (usuario == null)
             {
-                return false;
+                return ResultadoPatchUsuario.UsuarioNaoEncontrado;
             }
 
             if (dto.Name != null)
@@ -232,6 +168,13 @@ namespace Application.Services
 
             if (dto.Email != null)
             {
+               var usuarioComMesmoEmail = await _repository.GetByEmailAsync(dto.Email);
+
+                if (usuarioComMesmoEmail != null && usuarioComMesmoEmail.Id != usuario.Id)
+                {
+                    return ResultadoPatchUsuario.EmailJaExiste;
+                }
+
                 usuario.Email = dto.Email;
             }
 
@@ -252,7 +195,8 @@ namespace Application.Services
 
             if (dto.FatorSensibilidade != null)
             {
-                usuario.FatorSensibilidade = dto.FatorSensibilidade.Value;
+                usuario.FatorSensibilidade =
+                    dto.FatorSensibilidade.Value;
             }
 
             if (dto.HgtAlvo != null)
@@ -264,7 +208,22 @@ namespace Application.Services
 
             await _repository.SaveChangesAsync();
 
-            return true;
+            return ResultadoPatchUsuario.Sucesso;
+        }
+
+        private UsuarioOutputDto MapearParaOutput(Usuario usuario)
+        {
+            return new UsuarioOutputDto
+            {
+                Id = usuario.Id,
+                Name = usuario.Name,
+                Email = usuario.Email,
+                TipoDiabetes = usuario.TipoDiabetes,
+                Idade = usuario.Idade,
+                Celular = usuario.Celular,
+                FatorSensibilidade = usuario.FatorSensibilidade,
+                HgtAlvo = usuario.HgtAlvo
+            };
         }
     }
 }

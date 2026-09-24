@@ -1,22 +1,15 @@
 ﻿using Application.DTOs;
-using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Interfaces
 {
     public interface IUsuarioService
     {
-        Task <UsuarioOutputDto> CreateAsync(UsuarioCreateDto usuario);
-        Task<LoginResponseDto?> LoginAsync(LoginDto dto); 
-        Task <UsuarioOutputDto?> GetByIdAsync(int id);
-        Task <List<UsuarioOutputDto>> GetAllAsync();
-        Task <bool> DeleteAsync(int id);
+        Task<UsuarioOutputDto> CreateAsync(UsuarioCreateDto usuario);
+        Task<LoginResponseDto?> LoginAsync(LoginDto dto);
+        Task<UsuarioOutputDto?> GetByIdAsync(int id);
+        Task<List<UsuarioOutputDto>> GetAllAsync();
+        Task<bool> DeleteAsync(int id);
         Task<bool> ReativarContaAsync(ReativarContaDto dto);
-        Task <bool> UpdateAsync(int id,UsuarioUpdateDto dto);
-        Task<bool> PatchAsync(int id, UsuarioPatchDto dto);
+        Task<ResultadoPatchUsuario> PatchAsync(int id, UsuarioPatchDto dto);
     }
 }
