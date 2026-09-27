@@ -48,6 +48,7 @@ namespace Presentation.Controllers
         }
 
         [HttpPost("reativar")]
+        [EnableRateLimiting("login")]
         public async Task<IActionResult> ReativarConta(ReativarContaDto dto)
         {
             var reativado = await _service.ReativarContaAsync(dto);

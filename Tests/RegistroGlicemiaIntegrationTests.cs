@@ -1,8 +1,6 @@
 ﻿using Application.DTOs;
 using Xunit.Abstractions;
 using Application.Interfaces;
-using Application.DTOs;
-using Application.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -10,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System.Net;
 using System.Net.Http.Json;
-using Xunit.Abstractions;
 
 namespace Tests
 {

@@ -2,11 +2,8 @@
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Domain.Exceptions;
+using MySqlConnector;
 
 namespace Infrastructure.Repositories
 {
@@ -36,7 +33,16 @@ namespace Infrastructure.Repositories
 
         public async Task SaveChangesAsync()
         {
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+                when (ex.InnerException is MySqlException mysqlException
+                      && mysqlException.Number == 1062)
+            {
+                throw new EmailJaExisteException();
+            }
         }
 
         public void Update(Usuario usuario)

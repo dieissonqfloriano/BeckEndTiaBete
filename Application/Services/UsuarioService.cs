@@ -2,6 +2,7 @@
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Interfaces;
+using Domain.Exceptions;
 
 namespace Application.Services
 {
@@ -47,7 +48,19 @@ namespace Application.Services
             };
 
             await _repository.AddAsync(usuario);
-            await _repository.SaveChangesAsync();
+
+            try
+            {
+                await _repository.SaveChangesAsync();
+            }
+
+            catch (EmailJaExisteException)
+            {
+                return (
+                    ResultadoCriacaoUsuario.EmailJaExiste,
+                    null
+                );
+            }
 
             return (
                 ResultadoCriacaoUsuario.Sucesso,

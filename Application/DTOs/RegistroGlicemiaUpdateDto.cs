@@ -26,6 +26,14 @@ namespace Application.DTOs
         public IEnumerable<ValidationResult> Validate(
             ValidationContext validationContext)
         {
+            if (Data == default)
+            {
+                yield return new ValidationResult(
+                    "Informe uma data válida.",
+                    new[] { nameof(Data) }
+                );
+            }
+
             if (GlicemiaAcimaDoLimite && Glicemia != null)
             {
                 yield return new ValidationResult(
