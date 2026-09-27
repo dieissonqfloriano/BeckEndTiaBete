@@ -14,7 +14,8 @@ namespace Application.DTOs
         public int Dose { get; set; }
         public TimeSpan Hora {  get; set; }
         public string Refeicao { get; set; } = string.Empty;
-        public DateTime Data { get; set; }
+        public DateOnly Data { get; set; }
+        public string? Observacao { get; set; }
         public int UsuarioId {  get; set; }
        
     }

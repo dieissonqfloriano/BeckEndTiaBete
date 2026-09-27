@@ -16,7 +16,9 @@ namespace Application.DTOs
         [Required]
         public string Refeicao { get; set; } = string.Empty;
 
-        public DateTime Data { get; set; }
+        public DateOnly Data { get; set; }
+
+        public string? Observacao { get; set; }
 
         public IEnumerable<ValidationResult> Validate(
             ValidationContext validationContext)

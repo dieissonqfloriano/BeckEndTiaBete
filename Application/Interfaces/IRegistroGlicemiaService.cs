@@ -14,6 +14,6 @@ namespace Application.Interfaces.Application.Interfaces
 
         Task<bool> DeleteAsync(int id, int usuarioId);
 
-        Task<List<RegistroGlicemiaOutputDto>> GetByPeriodoAsync(int usuarioId, DateTime inicio, DateTime fimExclusivo);
+        Task<List<RegistroGlicemiaOutputDto>> GetByPeriodoAsync(int usuarioId, DateOnly dataInicial, DateOnly dataFinal);
     }
 }

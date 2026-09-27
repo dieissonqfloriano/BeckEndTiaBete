@@ -113,16 +113,10 @@ namespace Presentation.Controllers
                 return NotFound();
             }
 
-            var inicio = dataInicial.ToDateTime(TimeOnly.MinValue);
-
-            var fimExclusivo = dataFinal
-                .AddDays(1)
-                .ToDateTime(TimeOnly.MinValue);
-
             var registros = await _service.GetByPeriodoAsync(
                 usuarioId,
-                inicio,
-                fimExclusivo);
+                dataInicial,
+                dataFinal);
 
             var pdf = _pdfService.GerarHistoricoPdf(
                 usuario,

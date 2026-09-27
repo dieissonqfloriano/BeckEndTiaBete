@@ -16,8 +16,9 @@ namespace Domain.Entities
         public int Dose { get; set; }
         public TimeSpan Hora { get; set; }
         public string Refeicao { get; set; } = string.Empty;
-        public DateTime Data { get; set; }
+        public DateOnly Data { get; set; }
         public int UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
+        public string? Observacao { get; set; }
     }
 }

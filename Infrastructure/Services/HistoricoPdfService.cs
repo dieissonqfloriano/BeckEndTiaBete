@@ -1,14 +1,15 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
 using QuestPDF.Fluent;
-using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
 namespace Infrastructure.Services
 {
     public class HistoricoPdfService : IHistoricoPdfService
     {
-        public byte[] GerarHistoricoPdf(UsuarioOutputDto usuario, List<RegistroGlicemiaOutputDto> registros)
+        public byte[] GerarHistoricoPdf(
+            UsuarioOutputDto usuario,
+            List<RegistroGlicemiaOutputDto> registros)
         {
             QuestPDF.Settings.License = LicenseType.Community;
 
@@ -48,17 +49,23 @@ namespace Infrastructure.Services
                             .Text($"Nome: {usuario.Name}");
 
                         column.Item()
-                            .Text($"Idade: {usuario.Idade?.ToString() ?? "Não informada"}");
+                            .Text(
+                                $"Idade: {usuario.Idade?.ToString() ?? "Não informada"}"
+                            );
 
                         column.Item()
                             .Text($"HGT alvo: {usuario.HgtAlvo} mg/dL");
 
                         column.Item()
-                            .Text($"Fator de sensibilidade: {usuario.FatorSensibilidade}");
+                            .Text(
+                                $"Fator de sensibilidade: {usuario.FatorSensibilidade}"
+                            );
 
                         column.Item()
                             .PaddingTop(5)
-                            .Text($"Relatório gerado em {DateTime.Now:dd/MM/yyyy HH:mm}")
+                            .Text(
+                                $"Relatório gerado em {DateTime.Now:dd/MM/yyyy HH:mm}"
+                            )
                             .FontSize(10);
                     });
 
@@ -128,7 +135,8 @@ namespace Infrastructure.Services
                                     columns.RelativeColumn();
                                     columns.RelativeColumn();
                                     columns.RelativeColumn();
-                                    columns.RelativeColumn(1.5f);
+                                    columns.RelativeColumn(1.3f);
+                                    columns.RelativeColumn(2f);
                                 });
 
                                 table.Header(header =>
@@ -162,6 +170,12 @@ namespace Infrastructure.Services
                                         .Padding(6)
                                         .Text("Refeição")
                                         .Bold();
+
+                                    header.Cell()
+                                        .BorderBottom(1)
+                                        .Padding(6)
+                                        .Text("Observação")
+                                        .Bold();
                                 });
 
                                 foreach (var registro in registros)
@@ -169,7 +183,9 @@ namespace Infrastructure.Services
                                     table.Cell()
                                         .BorderBottom(0.5f)
                                         .Padding(6)
-                                        .Text(registro.Data.ToString("dd/MM/yyyy"));
+                                        .Text(
+                                            registro.Data.ToString("dd/MM/yyyy")
+                                        );
 
                                     table.Cell()
                                         .BorderBottom(0.5f)
@@ -194,6 +210,17 @@ namespace Infrastructure.Services
                                         .BorderBottom(0.5f)
                                         .Padding(6)
                                         .Text(registro.Refeicao);
+
+                                    table.Cell()
+                                        .BorderBottom(0.5f)
+                                        .Padding(6)
+                                        .Text(
+                                            string.IsNullOrWhiteSpace(
+                                                registro.Observacao
+                                            )
+                                                ? "-"
+                                                : registro.Observacao
+                                        );
                                 }
                             });
                         });
