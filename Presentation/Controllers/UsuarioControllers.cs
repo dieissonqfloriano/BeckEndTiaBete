@@ -2,12 +2,14 @@
 using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/usuario")]
+    [EnableRateLimiting("fixed")]
     public class UsuarioController : ControllerBase
     {
         private readonly IUsuarioService _service;
@@ -32,6 +34,7 @@ namespace Presentation.Controllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
             var usuario = await _service.LoginAsync(dto);

@@ -5,13 +5,15 @@ using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
-    [Authorize]
     [ApiController]
-    [Route("api/registros-glicemia")]
+    [Route("api/registro-glicemia")]
+    [Authorize]
+    [EnableRateLimiting("fixed")]
     public class RegistroGlicemiaController : ControllerBase
     {
         private readonly IRegistroGlicemiaService _service;
