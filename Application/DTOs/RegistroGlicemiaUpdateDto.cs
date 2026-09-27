@@ -9,7 +9,7 @@ namespace Application.DTOs
         public bool GlicemiaAcimaDoLimite { get; set; }
 
         [Range(0, 100)]
-        public decimal Dose { get; set; }
+        public int Dose { get; set; }
 
         public TimeSpan Hora { get; set; }
 

@@ -37,6 +37,8 @@ builder.Services.AddScoped<IRegistroGlicemiaService, RegistroGlicemiaService>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 
+builder.Services.AddScoped<IHistoricoPdfService, HistoricoPdfService>();
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>

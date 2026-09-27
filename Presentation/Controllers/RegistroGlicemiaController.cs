@@ -1,8 +1,11 @@
 ﻿using Application.DTOs;
+using Application.Interfaces;
 using Application.Interfaces.Application.Interfaces;
+using Application.Services;
+using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
 namespace Presentation.Controllers
@@ -13,11 +16,17 @@ namespace Presentation.Controllers
     public class RegistroGlicemiaController : ControllerBase
     {
         private readonly IRegistroGlicemiaService _service;
+        private readonly IHistoricoPdfService _pdfService;
+        private readonly IUsuarioService _usuarioService;
 
-        public RegistroGlicemiaController(IRegistroGlicemiaService service)
+
+        public RegistroGlicemiaController(IRegistroGlicemiaService service, IHistoricoPdfService pdfService, IUsuarioService usuarioService)
         {
             _service = service;
+            _pdfService = pdfService;
+            _usuarioService = usuarioService;
         }
+
 
         [HttpPost]
         public async Task<IActionResult> Create(RegistroGlicemiaCreateDto dto)
@@ -77,6 +86,36 @@ namespace Presentation.Controllers
             var registros = await _service.GetAllAsync(usuarioId);
 
             return Ok(registros);
+        }
+
+        [HttpGet("pdf")]
+        public async Task<IActionResult> BaixarHistoricoPdf()
+        {
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (usuarioIdClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            var usuarioId = int.Parse(usuarioIdClaim.Value);
+
+            var usuario = await _usuarioService.GetByIdAsync(usuarioId);
+
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+
+            var registros = await _service.GetAllAsync(usuarioId);
+
+            var pdf = _pdfService.GerarHistoricoPdf(usuario, registros);
+
+            return File(
+                pdf,
+                "application/pdf",
+                "historico-glicemia.pdf"
+            );
         }
 
         [HttpPut("{id}")]
