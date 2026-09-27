@@ -43,6 +43,18 @@ namespace Infrastructure.Repositories
                 && p.UsuarioId == usuarioId);
         }
 
+        public async Task<List<RegistroGlicemia>> GetByPeriodoAsync(int usuarioId, DateTime inicio, DateTime fimExclusivo)
+        {
+            return await _context.RegistrosGlicemia
+                .Where(r =>
+                    r.UsuarioId == usuarioId &&
+                    r.Data >= inicio &&
+                    r.Data < fimExclusivo)
+                .OrderBy(r => r.Data)
+                .ThenBy(r => r.Hora)
+                .ToListAsync();
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

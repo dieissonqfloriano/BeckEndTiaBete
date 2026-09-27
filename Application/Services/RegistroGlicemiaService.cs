@@ -15,8 +15,8 @@ namespace Application.Services
         }
 
         public async Task<RegistroGlicemiaOutputDto> CreateAsync(RegistroGlicemiaCreateDto dto, int usuarioId)
-        { 
-         
+        {
+
             var registro = new RegistroGlicemia
             {
                 Glicemia = dto.Glicemia,
@@ -35,7 +35,7 @@ namespace Application.Services
             {
                 Id = registro.Id,
                 Glicemia = registro.Glicemia,
-                GlicemiaAcimaDoLimite= registro.GlicemiaAcimaDoLimite,
+                GlicemiaAcimaDoLimite = registro.GlicemiaAcimaDoLimite,
                 Dose = registro.Dose,
                 Hora = registro.Hora,
                 Refeicao = registro.Refeicao,
@@ -105,7 +105,7 @@ namespace Application.Services
 
             var registroExiste = await _repository.GetByIdAsync(id, usuarioId);
 
-            if (registroExiste == null) 
+            if (registroExiste == null)
             {
                 return false;
             }
@@ -122,7 +122,26 @@ namespace Application.Services
             await _repository.SaveChangesAsync();
 
             return true;
+        }
 
+        public async Task<List<RegistroGlicemiaOutputDto>> GetByPeriodoAsync(int usuarioId, DateTime inicio, DateTime fimExclusivo)
+        {
+            var registros = await _repository.GetByPeriodoAsync(
+                usuarioId,
+                inicio,
+                fimExclusivo);
+
+            return registros.Select(registro => new RegistroGlicemiaOutputDto
+            {
+                Id = registro.Id,
+                Glicemia = registro.Glicemia,
+                GlicemiaAcimaDoLimite = registro.GlicemiaAcimaDoLimite,
+                Dose = registro.Dose,
+                Hora = registro.Hora,
+                Refeicao = registro.Refeicao,
+                Data = registro.Data,
+                UsuarioId = registro.UsuarioId
+            }).ToList();
         }
     }
 }

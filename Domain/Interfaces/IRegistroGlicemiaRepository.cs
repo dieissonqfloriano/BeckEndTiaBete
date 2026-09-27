@@ -15,5 +15,6 @@ namespace Domain.Interfaces
         Task<List<RegistroGlicemia>> GetAllUsuarioIdAsync(int usuarioId);
         void Delete(RegistroGlicemia registro);
         Task SaveChangesAsync();
+        Task<List<RegistroGlicemia>> GetByPeriodoAsync(int usuarioId, DateTime inicio, DateTime fimExclusivo);
     }
 }

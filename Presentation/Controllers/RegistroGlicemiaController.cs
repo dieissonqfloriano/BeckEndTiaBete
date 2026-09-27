@@ -89,13 +89,19 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("pdf")]
-        public async Task<IActionResult> BaixarHistoricoPdf()
+        public async Task<IActionResult> BaixarHistoricoPdf(DateOnly dataInicial, DateOnly dataFinal)
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
             if (usuarioIdClaim == null)
             {
                 return Unauthorized();
+            }
+
+            if (dataFinal < dataInicial)
+            {
+                return BadRequest(
+                    "A data final não pode ser menor que a data inicial.");
             }
 
             var usuarioId = int.Parse(usuarioIdClaim.Value);
@@ -107,14 +113,25 @@ namespace Presentation.Controllers
                 return NotFound();
             }
 
-            var registros = await _service.GetAllAsync(usuarioId);
+            var inicio = dataInicial.ToDateTime(TimeOnly.MinValue);
 
-            var pdf = _pdfService.GerarHistoricoPdf(usuario, registros);
+            var fimExclusivo = dataFinal
+                .AddDays(1)
+                .ToDateTime(TimeOnly.MinValue);
+
+            var registros = await _service.GetByPeriodoAsync(
+                usuarioId,
+                inicio,
+                fimExclusivo);
+
+            var pdf = _pdfService.GerarHistoricoPdf(
+                usuario,
+                registros);
 
             return File(
                 pdf,
                 "application/pdf",
-                "historico-glicemia.pdf"
+                $"historico-glicemia-{dataInicial:dd-MM-yyyy}-a-{dataFinal:dd-MM-yyyy}.pdf"
             );
         }
 

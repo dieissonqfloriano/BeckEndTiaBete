@@ -13,5 +13,7 @@ namespace Application.Interfaces.Application.Interfaces
         Task<bool> UpdateAsync(int id, RegistroGlicemiaUpdateDto dto, int usuarioId);
 
         Task<bool> DeleteAsync(int id, int usuarioId);
+
+        Task<List<RegistroGlicemiaOutputDto>> GetByPeriodoAsync(int usuarioId, DateTime inicio, DateTime fimExclusivo);
     }
 }
