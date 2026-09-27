@@ -10,7 +10,7 @@ namespace Application.DTOs
     public class UsuarioCreateDto
     {
         [Required]
-        [MinLength(3)]
+        [MinLength(1)]
         public string Name { get; set; } = string.Empty;
 
         [Required]

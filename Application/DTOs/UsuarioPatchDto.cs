@@ -9,7 +9,7 @@ namespace Application.DTOs
 {
     public class UsuarioPatchDto
     {
-        [MinLength(2)]
+        [MinLength(1)]
         public string? Name { get; set; }
 
         [EmailAddress]

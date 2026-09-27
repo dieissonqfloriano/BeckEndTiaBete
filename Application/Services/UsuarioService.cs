@@ -232,7 +232,14 @@ namespace Application.Services
 
             _repository.Update(usuario);
 
-            await _repository.SaveChangesAsync();
+            try
+            {
+                await _repository.SaveChangesAsync();
+            }
+            catch (EmailJaExisteException)
+            {
+                return ResultadoPatchUsuario.EmailJaExiste;
+            }
 
             return ResultadoPatchUsuario.Sucesso;
         }
