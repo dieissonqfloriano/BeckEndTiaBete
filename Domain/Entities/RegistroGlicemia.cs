@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -10,7 +11,8 @@ namespace Domain.Entities
     public class RegistroGlicemia
     {
         public int Id { get; set; }
-        public int Glicemia {  get; set; }
+        public int? Glicemia { get; set; }
+        public bool GlicemiaAcimaDoLimite { get; set; }
         public int Dose { get; set; }
         public TimeSpan Hora { get; set; }
         public string Refeicao { get; set; } = string.Empty;

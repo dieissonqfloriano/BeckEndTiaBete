@@ -1,13 +1,7 @@
-﻿using Application.Interfaces;
+﻿using Application.DTOs;
+using Application.Interfaces.Application.Interfaces;
 using Domain.Entities;
 using Domain.Interfaces;
-using Application.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application.Interfaces.Application.Interfaces;
 
 namespace Application.Services
 {
@@ -21,10 +15,12 @@ namespace Application.Services
         }
 
         public async Task<RegistroGlicemiaOutputDto> CreateAsync(RegistroGlicemiaCreateDto dto, int usuarioId)
-        {
+        { 
+         
             var registro = new RegistroGlicemia
             {
                 Glicemia = dto.Glicemia,
+                GlicemiaAcimaDoLimite = dto.GlicemiaAcimaDoLimite,
                 Dose = dto.Dose,
                 Hora = dto.Hora,
                 Refeicao = dto.Refeicao,
@@ -39,6 +35,7 @@ namespace Application.Services
             {
                 Id = registro.Id,
                 Glicemia = registro.Glicemia,
+                GlicemiaAcimaDoLimite= registro.GlicemiaAcimaDoLimite,
                 Dose = registro.Dose,
                 Hora = registro.Hora,
                 Refeicao = registro.Refeicao,
@@ -71,6 +68,7 @@ namespace Application.Services
             {
                 Id = registro.Id,
                 Glicemia = registro.Glicemia,
+                GlicemiaAcimaDoLimite = registro.GlicemiaAcimaDoLimite,
                 Dose = registro.Dose,
                 Hora = registro.Hora,
                 Refeicao = registro.Refeicao,
@@ -92,6 +90,7 @@ namespace Application.Services
             {
                 Id = registro.Id,
                 Glicemia = registro.Glicemia,
+                GlicemiaAcimaDoLimite = registro.GlicemiaAcimaDoLimite,
                 Dose = registro.Dose,
                 Hora = registro.Hora,
                 Refeicao = registro.Refeicao,
@@ -103,6 +102,7 @@ namespace Application.Services
 
         public async Task<bool> UpdateAsync(int id, RegistroGlicemiaUpdateDto dto, int usuarioId)
         {
+
             var registroExiste = await _repository.GetByIdAsync(id, usuarioId);
 
             if (registroExiste == null) 
@@ -111,6 +111,7 @@ namespace Application.Services
             }
 
             registroExiste.Glicemia = dto.Glicemia;
+            registroExiste.GlicemiaAcimaDoLimite = dto.GlicemiaAcimaDoLimite;
             registroExiste.Dose = dto.Dose;
             registroExiste.Hora = dto.Hora;
             registroExiste.Refeicao = dto.Refeicao;

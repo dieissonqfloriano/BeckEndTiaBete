@@ -1,18 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Application.DTOs
 {
-    public class RegistroGlicemiaUpdateDto
+    public class RegistroGlicemiaUpdateDto : IValidatableObject
     {
-        public int Glicemia {  get; set; }
-        public int Dose { get; set; }
-        public TimeSpan Hora {  get; set; }
+        public int? Glicemia { get; set; }
+
+        public bool GlicemiaAcimaDoLimite { get; set; }
+
+        [Range(0, 100)]
+        public decimal Dose { get; set; }
+
+        public TimeSpan Hora { get; set; }
+
+        [Required]
         public string Refeicao { get; set; } = string.Empty;
+
         public DateTime Data { get; set; }
 
+        public IEnumerable<ValidationResult> Validate(
+            ValidationContext validationContext)
+        {
+            if (GlicemiaAcimaDoLimite && Glicemia != null)
+            {
+                yield return new ValidationResult(
+                    "Quando o aparelho indicar HI, não informe um valor numérico de glicemia.",
+                    new[] { nameof(Glicemia), nameof(GlicemiaAcimaDoLimite) }
+                );
+            }
+
+            if (!GlicemiaAcimaDoLimite && Glicemia == null)
+            {
+                yield return new ValidationResult(
+                    "Informe o valor da glicemia.",
+                    new[] { nameof(Glicemia) }
+                );
+            }
+        }
     }
 }
