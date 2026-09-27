@@ -1,7 +1,7 @@
 ﻿using Application.DTOs;
 
-namespace Application.Interfaces.Application.Interfaces
-{
+namespace Application.Interfaces
+{ 
     public interface IRegistroGlicemiaService
     {
         Task<RegistroGlicemiaOutputDto> CreateAsync(RegistroGlicemiaCreateDto dto, int usuarioId);

@@ -22,6 +22,10 @@ namespace Application.DTOs
         public string Senha { get; set; } = string.Empty;
 
         [Required]
+        [RegularExpression(
+        "^(Tipo 1|Tipo 2|Gestacional|Outro)$",
+        ErrorMessage = "Tipo de diabetes inválido."
+        )]
         public string TipoDiabetes { get; set; } = string.Empty;
 
         [Range(1, 120)]

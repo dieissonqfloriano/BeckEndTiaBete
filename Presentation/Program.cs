@@ -1,13 +1,13 @@
 using Application.Interfaces;
-using Application.Interfaces.Application.Interfaces;
 using Application.Services;
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
-using Microsoft.EntityFrameworkCore;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 
 
@@ -30,8 +30,6 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IRegistroGlicemiaRepository, RegistroGlicemiaRepository>();
 
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-
-builder.Services.AddScoped<IRegistroGlicemiaService, RegistroGlicemiaService>();
 
 builder.Services.AddScoped<IRegistroGlicemiaService, RegistroGlicemiaService>();
 
@@ -88,6 +86,57 @@ builder.Services
                     builder.Configuration["Jwt:Key"]!
                 )
             )
+        };
+    });
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(
+                    builder.Configuration["Jwt:Key"]!
+                )
+            )
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var usuarioIdClaim = context.Principal?
+                    .FindFirst(ClaimTypes.NameIdentifier);
+
+                if (usuarioIdClaim == null)
+                {
+                    context.Fail("Usuário inválido.");
+                    return;
+                }
+
+                var usuarioId = int.Parse(usuarioIdClaim.Value);
+
+                var usuarioService = context.HttpContext
+                    .RequestServices
+                    .GetRequiredService<IUsuarioService>();
+
+                var usuarioAtivo =
+                    await usuarioService.UsuarioAtivoAsync(usuarioId);
+
+                if (!usuarioAtivo)
+                {
+                    context.Fail("Usuário inativo.");
+                }
+            }
         };
     });
 

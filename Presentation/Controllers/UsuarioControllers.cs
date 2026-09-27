@@ -20,9 +20,15 @@ namespace Presentation.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(UsuarioCreateDto dto)
         {
-            var usuarioCriado = await _service.CreateAsync(dto);
+            var resultado = await _service.CreateAsync(dto);
 
-            return StatusCode(201, usuarioCriado);
+            if (resultado.Resultado == ResultadoCriacaoUsuario.EmailJaExiste)
+            {
+                return Conflict(
+                    "Já existe um usuário cadastrado com este e-mail.");
+            }
+
+            return StatusCode(201, resultado.Usuario);
         }
 
         [HttpPost("login")]

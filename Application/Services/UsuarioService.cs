@@ -18,14 +18,19 @@ namespace Application.Services
             _tokenService = tokenService;
         }
 
-        public async Task<UsuarioOutputDto> CreateAsync(UsuarioCreateDto dto)
+        public async Task<(
+            ResultadoCriacaoUsuario Resultado,
+            UsuarioOutputDto? Usuario)> CreateAsync(UsuarioCreateDto dto)
         {
-            var usuarioExiste = await _repository.GetByEmailAsync(dto.Email);
+            var usuarioExiste =
+                await _repository.GetByEmailAsync(dto.Email);
 
             if (usuarioExiste != null)
             {
-                throw new Exception(
-                    "Já existe um usuário cadastrado com este e-mail.");
+                return (
+                    ResultadoCriacaoUsuario.EmailJaExiste,
+                    null
+                );
             }
 
             var usuario = new Usuario
@@ -44,7 +49,10 @@ namespace Application.Services
             await _repository.AddAsync(usuario);
             await _repository.SaveChangesAsync();
 
-            return MapearParaOutput(usuario);
+            return (
+                ResultadoCriacaoUsuario.Sucesso,
+                MapearParaOutput(usuario)
+            );
         }
 
         public async Task<LoginResponseDto?> LoginAsync(LoginDto dto)
@@ -152,7 +160,9 @@ namespace Application.Services
             return MapearParaOutput(usuario);
         }
 
-        public async Task<ResultadoPatchUsuario> PatchAsync(int id, UsuarioPatchDto dto)
+        public async Task<ResultadoPatchUsuario> PatchAsync(
+            int id,
+            UsuarioPatchDto dto)
         {
             var usuario = await _repository.GetByIdAsync(id);
 
@@ -168,9 +178,11 @@ namespace Application.Services
 
             if (dto.Email != null)
             {
-               var usuarioComMesmoEmail = await _repository.GetByEmailAsync(dto.Email);
+                var usuarioComMesmoEmail =
+                    await _repository.GetByEmailAsync(dto.Email);
 
-                if (usuarioComMesmoEmail != null && usuarioComMesmoEmail.Id != usuario.Id)
+                if (usuarioComMesmoEmail != null &&
+                    usuarioComMesmoEmail.Id != usuario.Id)
                 {
                     return ResultadoPatchUsuario.EmailJaExiste;
                 }
@@ -201,7 +213,8 @@ namespace Application.Services
 
             if (dto.HgtAlvo != null)
             {
-                usuario.HgtAlvo = dto.HgtAlvo.Value;
+                usuario.HgtAlvo =
+                    dto.HgtAlvo.Value;
             }
 
             _repository.Update(usuario);
@@ -209,6 +222,18 @@ namespace Application.Services
             await _repository.SaveChangesAsync();
 
             return ResultadoPatchUsuario.Sucesso;
+        }
+
+        public async Task<bool> UsuarioAtivoAsync(int id)
+        {
+            var usuario = await _repository.GetByIdAsync(id);
+
+            if (usuario == null)
+            {
+                return false;
+            }
+
+            return usuario.Ativo;
         }
 
         private UsuarioOutputDto MapearParaOutput(Usuario usuario)

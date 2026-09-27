@@ -23,11 +23,6 @@ namespace Infrastructure.Repositories
             await _context.Usuarios.AddAsync(usuario);
         }
 
-        public void Delete(Usuario usuario)
-        {
-            _context.Usuarios.Remove(usuario);
-        }
-
         public async Task<List<Usuario>> GetAllAsync()
         {
             return await _context.Usuarios.ToListAsync();

@@ -15,6 +15,10 @@ namespace Application.DTOs
         [EmailAddress]
         public string? Email { get; set; }
 
+        [RegularExpression(
+        "^(Tipo 1|Tipo 2|Gestacional|Outro)$",
+        ErrorMessage = "Tipo de diabetes inválido."
+        )]
         public string? TipoDiabetes { get; set; }
 
         [Range(1, 120)]

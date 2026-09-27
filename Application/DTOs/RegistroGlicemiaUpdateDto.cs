@@ -18,6 +18,9 @@ namespace Application.DTOs
 
         public DateOnly Data { get; set; }
 
+        [StringLength(    500,
+        ErrorMessage = "A observação deve ter no máximo 500 caracteres."
+        )]
         public string? Observacao { get; set; }
 
         public IEnumerable<ValidationResult> Validate(

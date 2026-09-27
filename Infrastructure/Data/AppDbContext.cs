@@ -24,6 +24,10 @@ namespace Infrastructure.Data
             modelBuilder.Entity<Usuario>()
                 .HasIndex(p => p.Email)
                 .IsUnique();
+
+            modelBuilder.Entity<RegistroGlicemia>()
+                .Property(r => r.Observacao)
+                .HasMaxLength(500);
         }
 
     }
