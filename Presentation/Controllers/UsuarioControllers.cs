@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
+using Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -13,10 +14,12 @@ namespace Presentation.Controllers
     public class UsuarioController : ControllerBase
     {
         private readonly IUsuarioService _service;
+        private readonly IUsuarioAtivoCache _usuarioAtivoCache;
 
-        public UsuarioController(IUsuarioService service)
+        public UsuarioController(IUsuarioService service, IUsuarioAtivoCache usuarioAtivoCache)
         {
             _service = service;
+            _usuarioAtivoCache = usuarioAtivoCache;
         }
 
         [HttpPost]
@@ -37,7 +40,16 @@ namespace Presentation.Controllers
         [EnableRateLimiting("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
-            var usuario = await _service.LoginAsync(dto);
+            LoginResponseDto? usuario;
+
+            try
+            {
+                usuario = await _service.LoginAsync(dto);
+            }
+            catch (EmailNaoConfirmadoException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, ex.Message);
+            }
 
             if (usuario == null)
             {
@@ -45,6 +57,30 @@ namespace Presentation.Controllers
             }
 
             return Ok(usuario);
+        }
+
+        [HttpPost("confirmar-email")]
+        [EnableRateLimiting("login")]
+        public async Task<IActionResult> ConfirmarEmail(ConfirmarEmailDto dto)
+        {
+            var resultado = await _service.ConfirmarEmailAsync(dto);
+
+            return resultado switch
+            {
+                ResultadoConfirmacaoEmail.Sucesso => Ok("E-mail confirmado."),
+                ResultadoConfirmacaoEmail.JaConfirmado => Ok("Este e-mail já estava confirmado."),
+                ResultadoConfirmacaoEmail.CodigoExpirado => BadRequest("O código expirou. Peça um novo código."),
+                ResultadoConfirmacaoEmail.MuitasTentativas => BadRequest("Muitas tentativas erradas. Peça um novo código."),
+                _ => BadRequest("Código inválido.")
+            };
+        }
+
+        [HttpPost("reenviar-codigo")]
+        [EnableRateLimiting("login")]
+        public async Task<IActionResult> ReenviarCodigo(ReenviarCodigoDto dto)
+        {
+            await _service.ReenviarCodigoAsync(dto);
+            return Ok("Se o e-mail estiver cadastrado e ainda não confirmado, enviamos um novo código.");
         }
 
         [HttpPost("reativar")]
@@ -132,6 +168,37 @@ namespace Presentation.Controllers
                 return NotFound();
             }
 
+            // Tokens já emitidos param de valer imediatamente.
+            _usuarioAtivoCache.Invalidar(usuarioId);
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Exclui definitivamente a conta e todos os registros (LGPD art. 18, VI).
+        /// Exige a senha para evitar exclusão acidental ou por quem pegou o celular desbloqueado.
+        /// </summary>
+        [Authorize]
+        [HttpPost("excluir-conta")]
+        [EnableRateLimiting("login")]
+        public async Task<IActionResult> ExcluirConta(ExcluirContaDto dto)
+        {
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (usuarioIdClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            var usuarioId = int.Parse(usuarioIdClaim.Value);
+            var excluido = await _service.ExcluirDefinitivamenteAsync(usuarioId, dto);
+
+            if (!excluido)
+            {
+                return BadRequest("Senha incorreta. A conta não foi excluída.");
+            }
+
+            _usuarioAtivoCache.Invalidar(usuarioId);
             return NoContent();
         }
 

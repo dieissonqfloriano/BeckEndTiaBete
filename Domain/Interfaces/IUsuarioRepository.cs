@@ -1,20 +1,17 @@
-﻿using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Domain.Entities;
 
 namespace Domain.Interfaces
 {
     public interface IUsuarioRepository
     {
         Task AddAsync(Usuario usuario);
-        void Update (Usuario usuario);
-        Task <Usuario?> GetByIdAsync (int id);
-        Task<List<Usuario>> GetAllAsync ();
-        Task SaveChangesAsync ();
+        Task<Usuario?> GetByIdAsync(int id);
+        Task<Usuario?> GetByIdSomenteLeituraAsync(int id);
         Task<Usuario?> GetByEmailAsync(string email);
-
+        Task<List<Usuario>> GetAllAsync();
+        Task<bool> ExisteAtivoAsync(int id);
+        Task<bool> DesativarAsync(int id);
+        Task<bool> ExcluirDefinitivamenteAsync(int id);
+        Task SaveChangesAsync();
     }
 }

@@ -58,7 +58,7 @@ namespace Infrastructure.Services
 
                         column.Item()
                             .Text(
-                                $"Fator de sensibilidade: {usuario.FatorSensibilidade}"
+                                $"Fator de sensibilidade: {usuario.FatorSensibilidade:0.#}"
                             );
 
                         column.Item()
@@ -190,7 +190,7 @@ namespace Infrastructure.Services
                                     table.Cell()
                                         .BorderBottom(0.5f)
                                         .Padding(6)
-                                        .Text(registro.Hora.ToString());
+                                        .Text(registro.Hora.ToString(@"hh\:mm"));
 
                                     table.Cell()
                                         .BorderBottom(0.5f)
@@ -204,7 +204,7 @@ namespace Infrastructure.Services
                                     table.Cell()
                                         .BorderBottom(0.5f)
                                         .Padding(6)
-                                        .Text(registro.Dose.ToString());
+                                        .Text(registro.Dose.ToString("0.#"));
 
                                     table.Cell()
                                         .BorderBottom(0.5f)

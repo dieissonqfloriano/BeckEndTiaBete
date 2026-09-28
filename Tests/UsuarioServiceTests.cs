@@ -74,7 +74,7 @@ namespace Tests
                 Id = 1,
                 Name = "Usuario Teste",
                 Email = "teste@email.com",
-                Senha = BCrypt.Net.BCrypt.HashPassword("123456"),
+                SenhaHash = BCrypt.Net.BCrypt.HashPassword("123456"),
                 Ativo = false
             };
 
