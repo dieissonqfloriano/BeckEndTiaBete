@@ -12,5 +12,8 @@ namespace Application.Interfaces
         Task<bool> ReativarContaAsync(ReativarContaDto dto);
         Task<ResultadoPatchUsuario> PatchAsync(int id, UsuarioPatchDto dto);
         Task<bool> UsuarioAtivoAsync(int id);
+        Task<ResultadoConfirmacaoEmail> ConfirmarEmailAsync(ConfirmarEmailDto dto);
+        Task ReenviarCodigoAsync(ReenviarCodigoDto dto);
+        Task<bool> ExcluirDefinitivamenteAsync(int id, ExcluirContaDto dto);
     }
 }

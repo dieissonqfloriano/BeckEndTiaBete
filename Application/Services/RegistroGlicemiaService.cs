@@ -1,6 +1,7 @@
-﻿using Application.DTOs;
+using Application.DTOs;
 using Application.Interfaces;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.Interfaces;
 
 namespace Application.Services
@@ -16,17 +17,10 @@ namespace Application.Services
 
         public async Task<RegistroGlicemiaOutputDto> CreateAsync(RegistroGlicemiaCreateDto dto, int usuarioId)
         {
-            var registro = new RegistroGlicemia
-            {
-                Glicemia = dto.Glicemia,
-                GlicemiaAcimaDoLimite = dto.GlicemiaAcimaDoLimite,
-                Dose = dto.Dose,
-                Hora = dto.Hora,
-                Refeicao = dto.Refeicao,
-                Data = dto.Data,
-                Observacao = dto.Observacao,
-                UsuarioId = usuarioId
-            };
+            var registro = new RegistroGlicemia { UsuarioId = usuarioId };
+
+            Aplicar(registro, dto.Glicemia, dto.GlicemiaAcimaDoLimite, dto.Dose,
+                dto.Hora, dto.Refeicao, dto.Data, dto.Observacao);
 
             await _repository.AddAsync(registro);
             await _repository.SaveChangesAsync();
@@ -34,7 +28,30 @@ namespace Application.Services
             return MapearParaOutput(registro);
         }
 
-        public async Task<bool> DeleteAsync(int id, int usuarioId)
+        public Task<bool> DeleteAsync(int id, int usuarioId) =>
+            _repository.DeleteAsync(id, usuarioId);
+
+        public async Task<List<RegistroGlicemiaOutputDto>> GetAllAsync(
+            int usuarioId,
+            int pagina = 1,
+            int tamanho = RegistroGlicemiaPaginacao.TamanhoPadrao)
+        {
+            pagina = Math.Max(pagina, 1);
+            tamanho = Math.Clamp(tamanho, 1, RegistroGlicemiaPaginacao.TamanhoMaximo);
+
+            var registros = await _repository.GetPaginaAsync(usuarioId, pagina, tamanho);
+
+            return registros.Select(MapearParaOutput).ToList();
+        }
+
+        public async Task<RegistroGlicemiaOutputDto?> GetByIdAsync(int id, int usuarioId)
+        {
+            var registro = await _repository.GetByIdSomenteLeituraAsync(id, usuarioId);
+
+            return registro == null ? null : MapearParaOutput(registro);
+        }
+
+        public async Task<bool> UpdateAsync(int id, RegistroGlicemiaUpdateDto dto, int usuarioId)
         {
             var registro = await _repository.GetByIdAsync(id, usuarioId);
 
@@ -43,87 +60,55 @@ namespace Application.Services
                 return false;
             }
 
-            _repository.Delete(registro);
+            Aplicar(registro, dto.Glicemia, dto.GlicemiaAcimaDoLimite, dto.Dose,
+                dto.Hora, dto.Refeicao, dto.Data, dto.Observacao);
 
+            // A entidade já está sendo rastreada: o EF grava só as colunas alteradas.
             await _repository.SaveChangesAsync();
 
             return true;
         }
 
-        public async Task<List<RegistroGlicemiaOutputDto>> GetAllAsync(int usuarioId)
+        public async Task<List<RegistroGlicemiaOutputDto>> GetByPeriodoAsync(
+            int usuarioId, DateOnly dataInicial, DateOnly dataFinal)
         {
-            var registros =
-                await _repository.GetAllUsuarioIdAsync(usuarioId);
+            var registros = await _repository.GetByPeriodoAsync(usuarioId, dataInicial, dataFinal);
 
-            return registros
-                .Select(registro => MapearParaOutput(registro))
-                .ToList();
+            return registros.Select(MapearParaOutput).ToList();
         }
 
-        public async Task<RegistroGlicemiaOutputDto?> GetByIdAsync(int id, int usuarioId)
+        private static void Aplicar(
+            RegistroGlicemia registro,
+            int? glicemia,
+            bool acimaDoLimite,
+            decimal dose,
+            TimeSpan hora,
+            string refeicao,
+            DateOnly data,
+            string? observacao)
         {
-            var registro =
-                await _repository.GetByIdAsync(id, usuarioId);
+            TipoRefeicaoConversor.TentarConverter(refeicao, out var tipoRefeicao);
 
-            if (registro == null)
-            {
-                return null;
-            }
-
-            return MapearParaOutput(registro);
+            registro.Glicemia = acimaDoLimite ? null : glicemia;
+            registro.GlicemiaAcimaDoLimite = acimaDoLimite;
+            registro.Dose = dose;
+            registro.Hora = new TimeSpan(hora.Hours, hora.Minutes, hora.Seconds); // sem frações de segundo
+            registro.Refeicao = tipoRefeicao;
+            registro.Data = data;
+            registro.Observacao = string.IsNullOrWhiteSpace(observacao) ? null : observacao.Trim();
         }
 
-        public async Task<bool> UpdateAsync(int id, RegistroGlicemiaUpdateDto dto, int usuarioId)
+        private static RegistroGlicemiaOutputDto MapearParaOutput(RegistroGlicemia registro) => new()
         {
-            var registroExiste =
-                await _repository.GetByIdAsync(id, usuarioId);
-
-            if (registroExiste == null)
-            {
-                return false;
-            }
-
-            registroExiste.Glicemia = dto.Glicemia;
-            registroExiste.GlicemiaAcimaDoLimite = dto.GlicemiaAcimaDoLimite;
-            registroExiste.Dose = dto.Dose;
-            registroExiste.Hora = dto.Hora;
-            registroExiste.Refeicao = dto.Refeicao;
-            registroExiste.Data = dto.Data;
-            registroExiste.Observacao = dto.Observacao;
-
-            _repository.Update(registroExiste);
-
-            await _repository.SaveChangesAsync();
-
-            return true;
-        }
-
-        public async Task<List<RegistroGlicemiaOutputDto>> GetByPeriodoAsync(int usuarioId, DateOnly dataInicial, DateOnly dataFinal)
-        {
-            var registros = await _repository.GetByPeriodoAsync(
-                usuarioId,
-                dataInicial,
-                dataFinal);
-
-            return registros
-                .Select(registro => MapearParaOutput(registro))
-                .ToList();
-        }
-
-        private RegistroGlicemiaOutputDto MapearParaOutput(RegistroGlicemia registro)
-        {
-            return new RegistroGlicemiaOutputDto
-            {
-                Id = registro.Id,
-                Glicemia = registro.Glicemia,
-                GlicemiaAcimaDoLimite = registro.GlicemiaAcimaDoLimite,
-                Dose = registro.Dose,
-                Hora = registro.Hora,
-                Refeicao = registro.Refeicao,
-                Data = registro.Data,
-                Observacao = registro.Observacao,
-                UsuarioId = registro.UsuarioId
-            };
-        }
+            Id = registro.Id,
+            Glicemia = registro.Glicemia,
+            GlicemiaAcimaDoLimite = registro.GlicemiaAcimaDoLimite,
+            Dose = registro.Dose,
+            Hora = registro.Hora,
+            Refeicao = TipoRefeicaoConversor.ParaTexto(registro.Refeicao),
+            Data = registro.Data,
+            Observacao = registro.Observacao,
+            UsuarioId = registro.UsuarioId
+        };
     }
 }

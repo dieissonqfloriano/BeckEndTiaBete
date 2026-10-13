@@ -1,3 +1,4 @@
+using Application.DTOs;
 using Application.Interfaces;
 using Application.Services;
 using Domain.Interfaces;
@@ -5,6 +6,7 @@ using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
@@ -15,14 +17,26 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(
+// No ambiente de teste de carga os segredos locais (connection string, chave JWT)
+// também precisam ser lidos — por padrão o .NET só lê User Secrets em Development.
+if (builder.Environment.IsEnvironment("LoadTest"))
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
+
+// Versão fixa do MySQL: evita abrir uma conexão só para detectar a versão ao iniciar a API.
+var versaoMySql = ServerVersion.Parse(
+    builder.Configuration["Database:ServerVersion"] ?? "8.0.36-mysql");
+
+// DbContextPool reaproveita instâncias do contexto entre requisições (menos alocação sob carga).
+builder.Services.AddDbContextPool<AppDbContext>(
+    options => options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(
-            builder.Configuration.GetConnectionString("DefaultConnection")
-        )
-    )
-);
+        versaoMySql,
+        mySql => mySql.EnableRetryOnFailure(maxRetryCount: 3)),
+    poolSize: 256);
+
+builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
@@ -37,6 +51,23 @@ builder.Services.AddScoped<
     RegistroGlicemiaService>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
+
+builder.Services.AddScoped<IUsuarioAtivoCache, UsuarioAtivoCache>();
+
+// Confirmação de e-mail: com chave do Brevo envia e-mail de verdade;
+// sem chave (desenvolvimento), mostra o código no console da API.
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection("ConfirmacaoEmail").Get<ConfiguracaoConfirmacaoEmail>()
+    ?? new ConfiguracaoConfirmacaoEmail());
+
+if (string.IsNullOrWhiteSpace(builder.Configuration["Email:BrevoApiKey"]))
+{
+    builder.Services.AddSingleton<IEmailService, ConsoleEmailService>();
+}
+else
+{
+    builder.Services.AddSingleton<IEmailService, BrevoEmailService>();
+}
 
 builder.Services.AddScoped<
     IHistoricoPdfService,
@@ -133,14 +164,14 @@ builder.Services
                     return;
                 }
 
-                var usuarioService =
+                var usuarioAtivoCache =
                     context.HttpContext
                         .RequestServices
                         .GetRequiredService<
-                            IUsuarioService>();
+                            IUsuarioAtivoCache>();
 
                 var usuarioAtivo =
-                    await usuarioService
+                    await usuarioAtivoCache
                         .UsuarioAtivoAsync(
                             usuarioId
                         );
@@ -157,6 +188,11 @@ builder.Services
 
 
 builder.Services.AddAuthorization();
+
+// Limites configuráveis: o ambiente LoadTest (appsettings.LoadTest.json) usa valores altos
+// para medir a API e o banco, e não o limitador.
+var limiteGeral = builder.Configuration.GetValue("RateLimiting:Geral:PermitLimit", 60);
+var limiteLogin = builder.Configuration.GetValue("RateLimiting:Login:PermitLimit", 5);
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -186,7 +222,7 @@ builder.Services.AddRateLimiter(options =>
                     factory: _ =>
                         new FixedWindowRateLimiterOptions
                         {
-                            PermitLimit = 60,
+                            PermitLimit = limiteGeral,
 
                             Window =
                                 TimeSpan.FromMinutes(1),
@@ -214,7 +250,7 @@ builder.Services.AddRateLimiter(options =>
                     factory: _ =>
                         new FixedWindowRateLimiterOptions
                         {
-                            PermitLimit = 5,
+                            PermitLimit = limiteLogin,
 
                             Window =
                                 TimeSpan.FromMinutes(1),
@@ -237,7 +273,33 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Na hospedagem (Render etc.) a API fica atrás de um proxy: o IP real do usuário
+// chega no cabeçalho X-Forwarded-For. Sem isso, o limite de login valeria para
+// todos os usuários juntos (todos pareceriam ter o IP do proxy).
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseForwardedHeaders();
+}
+
+// Cria/atualiza as tabelas automaticamente ao iniciar, se configurado
+// (variável de ambiente Database__AplicarMigracoesAoIniciar=true na hospedagem).
+if (app.Configuration.GetValue("Database:AplicarMigracoesAoIniciar", false))
+{
+    using var escopo = app.Services.CreateScope();
+    escopo.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+}
+
+// Rota simples para verificar se a API está no ar (usada pelo Render e para "acordar" o servidor)
+app.MapGet("/api/saude", () => Results.Ok(new { status = "ok" }));
 
 // Swagger
 if (app.Environment.IsDevelopment())

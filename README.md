@@ -198,13 +198,16 @@ dotnet user-secrets set "Jwt:Audience" "TiaBete" --project Presentation
 
 ## 🗄 Database
 
-After configuring the MySQL connection string, apply the Entity Framework Core migrations:
+MySQL 8 (utf8mb4), two tables: `Usuarios` and `RegistrosGlicemia` (1:N, cascade delete).
+Main index: `IX_RegistrosGlicemia_UsuarioId_Data_Hora` on `(UsuarioId, Data, Hora)`.
+Business rules are also enforced by check constraints (glucose 20–600, "HI" readings, dose 0–100).
+
+Full setup, migration and load-test guide (Portuguese): **[COMO-RODAR-O-NOVO-BANCO.md](COMO-RODAR-O-NOVO-BANCO.md)**
 
 ```powershell
+dotnet ef migrations add CriacaoInicial --project Infrastructure --startup-project Presentation
 dotnet ef database update --project Infrastructure --startup-project Presentation
 ```
-
-The project uses EF Core migrations to create and update the database structure.
 
 ---
 

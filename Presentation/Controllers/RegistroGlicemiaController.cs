@@ -72,8 +72,14 @@ namespace Presentation.Controllers
             return Ok(registro);
         }
 
+        /// <summary>
+        /// Lista os registros do usuário, do mais recente para o mais antigo.
+        /// Paginado: ?pagina=1&amp;tamanho=100 (máximo 500 por página).
+        /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int pagina = 1,
+            [FromQuery] int tamanho = RegistroGlicemiaPaginacao.TamanhoPadrao)
         {
             var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
@@ -84,7 +90,7 @@ namespace Presentation.Controllers
 
             var usuarioId = int.Parse(usuarioIdClaim.Value);
 
-            var registros = await _service.GetAllAsync(usuarioId);
+            var registros = await _service.GetAllAsync(usuarioId, pagina, tamanho);
 
             return Ok(registros);
         }
@@ -103,6 +109,12 @@ namespace Presentation.Controllers
             {
                 return BadRequest(
                     "A data final não pode ser menor que a data inicial.");
+            }
+
+            if (dataFinal.DayNumber - dataInicial.DayNumber >= RegistroGlicemiaPaginacao.PeriodoMaximoDias)
+            {
+                return BadRequest(
+                    $"O período máximo do relatório é de {RegistroGlicemiaPaginacao.PeriodoMaximoDias} dias.");
             }
 
             var usuarioId = int.Parse(usuarioIdClaim.Value);

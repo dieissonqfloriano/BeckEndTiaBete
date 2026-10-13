@@ -12,17 +12,19 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260927014602_AdicionaObservacaoRegistroGlicemiaAtualizado")]
-    partial class AdicionaObservacaoRegistroGlicemiaAtualizado
+    [Migration("20260928132449_CriacaoInicial")]
+    partial class CriacaoInicial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .UseCollation("utf8mb4_0900_ai_ci")
                 .HasAnnotation("ProductVersion", "8.0.30")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
+            MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8mb4");
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
             modelBuilder.Entity("Domain.Entities.RegistroGlicemia", b =>
@@ -33,11 +35,20 @@ namespace Infrastructure.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("Data")
+                    b.Property<DateTime>("AtualizadoEm")
+                        .HasPrecision(6)
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("Dose")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("CriadoEm")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateOnly>("Data")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("Dose")
+                        .HasPrecision(4, 1)
+                        .HasColumnType("decimal(4,1)");
 
                     b.Property<int?>("Glicemia")
                         .HasColumnType("int");
@@ -46,23 +57,34 @@ namespace Infrastructure.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<TimeSpan>("Hora")
-                        .HasColumnType("time(6)");
+                        .HasPrecision(0)
+                        .HasColumnType("time(0)");
 
                     b.Property<string>("Observacao")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("Refeicao")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UsuarioId");
+                    b.HasIndex("UsuarioId", "Data", "Hora")
+                        .HasDatabaseName("IX_RegistrosGlicemia_UsuarioId_Data_Hora");
 
-                    b.ToTable("RegistrosGlicemia");
+                    b.ToTable("RegistrosGlicemia", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Registros_Dose", "`Dose` BETWEEN 0 AND 100");
+
+                            t.HasCheckConstraint("CK_Registros_GlicemiaFaixa", "`Glicemia` IS NULL OR `Glicemia` BETWEEN 20 AND 600");
+
+                            t.HasCheckConstraint("CK_Registros_HI", "(`GlicemiaAcimaDoLimite` = 1 AND `Glicemia` IS NULL) OR (`GlicemiaAcimaDoLimite` = 0 AND `Glicemia` IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Usuario", b =>
@@ -76,15 +98,30 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("Ativo")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<DateTime>("AtualizadoEm")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Celular")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("DesativadoEm")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasMaxLength(254)
+                        .HasColumnType("varchar(254)");
 
-                    b.Property<int>("FatorSensibilidade")
-                        .HasColumnType("int");
+                    b.Property<decimal>("FatorSensibilidade")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("decimal(5,1)");
 
                     b.Property<int>("HgtAlvo")
                         .HasColumnType("int");
@@ -94,26 +131,38 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
-                    b.Property<string>("Senha")
+                    b.Property<string>("SenhaHash")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("TipoDiabetes")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("UX_Usuarios_Email");
 
-                    b.ToTable("Usuarios");
+                    b.ToTable("Usuarios", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Usuarios_FatorSensibilidade", "`FatorSensibilidade` BETWEEN 1 AND 600");
+
+                            t.HasCheckConstraint("CK_Usuarios_HgtAlvo", "`HgtAlvo` BETWEEN 1 AND 600");
+
+                            t.HasCheckConstraint("CK_Usuarios_Idade", "`Idade` IS NULL OR `Idade` BETWEEN 1 AND 120");
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.RegistroGlicemia", b =>

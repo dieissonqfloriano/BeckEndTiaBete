@@ -1,12 +1,7 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
@@ -24,45 +19,44 @@ namespace Infrastructure.Repositories
             await _context.RegistrosGlicemia.AddAsync(registro);
         }
 
-        public void Delete(RegistroGlicemia registro)
-        {
-            _context.RegistrosGlicemia.Remove(registro);
-        }
+        // Rastreada: usada quando o registro vai ser alterado.
+        public Task<RegistroGlicemia?> GetByIdAsync(int id, int usuarioId) =>
+            _context.RegistrosGlicemia
+                .FirstOrDefaultAsync(r => r.Id == id && r.UsuarioId == usuarioId);
 
-        public async Task<List<RegistroGlicemia>> GetAllUsuarioIdAsync(int usuarioId)
-        {
-            return await _context.RegistrosGlicemia
+        public Task<RegistroGlicemia?> GetByIdSomenteLeituraAsync(int id, int usuarioId) =>
+            _context.RegistrosGlicemia
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.Id == id && r.UsuarioId == usuarioId);
+
+        public Task<List<RegistroGlicemia>> GetPaginaAsync(int usuarioId, int pagina, int tamanho) =>
+            _context.RegistrosGlicemia
+                .AsNoTracking()
                 .Where(r => r.UsuarioId == usuarioId)
+                .OrderByDescending(r => r.Data)
+                .ThenByDescending(r => r.Hora)
+                .Skip((pagina - 1) * tamanho)
+                .Take(tamanho)
                 .ToListAsync();
-        }
 
-        public async Task<RegistroGlicemia?> GetByIdAsync(int id, int usuarioId)
-        {
-            return await _context.RegistrosGlicemia
-                .FirstOrDefaultAsync(p => p.Id == id
-                && p.UsuarioId == usuarioId);
-        }
-
-        public async Task<List<RegistroGlicemia>> GetByPeriodoAsync(int usuarioId, DateOnly dataInicial, DateOnly dataFinal)
-        {
-            return await _context.RegistrosGlicemia
-                .Where(r =>
-                    r.UsuarioId == usuarioId &&
-                    r.Data >= dataInicial &&
-                    r.Data <= dataFinal)
+        public Task<List<RegistroGlicemia>> GetByPeriodoAsync(int usuarioId, DateOnly dataInicial, DateOnly dataFinal) =>
+            _context.RegistrosGlicemia
+                .AsNoTracking()
+                .Where(r => r.UsuarioId == usuarioId && r.Data >= dataInicial && r.Data <= dataFinal)
                 .OrderBy(r => r.Data)
                 .ThenBy(r => r.Hora)
                 .ToListAsync();
+
+        // Um único DELETE no banco, sem buscar o registro antes.
+        public async Task<bool> DeleteAsync(int id, int usuarioId)
+        {
+            var apagados = await _context.RegistrosGlicemia
+                .Where(r => r.Id == id && r.UsuarioId == usuarioId)
+                .ExecuteDeleteAsync();
+
+            return apagados > 0;
         }
 
-        public async Task SaveChangesAsync()
-        {
-            await _context.SaveChangesAsync();
-        }
-
-        public void Update(RegistroGlicemia registro)
-        {
-            _context.RegistrosGlicemia.Update(registro);
-        }
+        public Task SaveChangesAsync() => _context.SaveChangesAsync();
     }
 }
